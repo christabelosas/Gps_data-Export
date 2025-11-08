@@ -21,24 +21,30 @@
 ---
 
 ## Key AVL Data Fields and Meanings
-AVL (Automatic Vehicle Location) data contains a snapshot of telemetry and GPS info.
 
-| Field | Description |
-|-------|-------------|
-| `timestamp` | Unix time when record was created |
-| `latitude`, `longitude` | GPS coordinates |
-| `altitude` | Meters above sea level |
-| `angle` | Vehicle direction (0–359°) |
-| `speed` | Speed in km/h |
-| `satellites` | Number of satellites used |
-| `io_elements` | Additional I/O parameters (sensor data) |
-| `pr` | Priority or position report flag |
-| `tr` | Trip status (moving or stopped) |
-| `ignition` | Engine ON/OFF (digital input) |
-| `battery_voltage` | Internal battery status |
-| `gsm_signal` | GSM signal strength |
-| `odometer` | Distance counter |
-| `can_data` | CAN bus readings (RPM, fuel, temperature, etc.) |
+| Field | Name | Description |
+|--------|------|-------------|
+| `ts` | Timestamp | Event time in milliseconds since epoch; represents when the GPS data was recorded. |
+| `pr` | Priority | Message priority; defines whether the record is high or low importance for transmission. |
+| `latlng` | Latitude and Longitude | GPS coordinates of the device in the format `latitude,longitude`. |
+| `alt` | Altitude | Device’s altitude above sea level, measured in meters. |
+| `ang` | Angle | Vehicle’s direction or heading in degrees (0–359). |
+| `sat` | Satellites | Number of GPS satellites used to calculate position accuracy. |
+| `sp` | Speed | Vehicle’s instantaneous speed in km/h. |
+| `evt` | Event ID | Represents a triggered event type (e.g., movement, ignition, or custom alert). |
+| `239` | Ignition | Digital input status; `1` indicates ignition ON, `0` indicates ignition OFF. |
+| `240` | Movement | Movement detection flag; `1` when vehicle is moving, `0` when stationary. |
+| `21` | GSM Signal | GSM network signal strength (0–5 scale or network-specific range). |
+| `200` | Sleep Mode | Indicates if the device is in sleep mode (`1`) or active (`0`). |
+| `69` | GNSS Status | General GNSS fix status; `1` indicates valid GPS fix, `0` means no fix. |
+| `181` | GNSS PDOP | Position Dilution of Precision; lower values indicate higher GPS accuracy. |
+| `182` | GNSS HDOP | Horizontal Dilution of Precision; reflects accuracy of horizontal positioning. |
+| `66` | External Voltage | Voltage from the vehicle’s external power source, measured in millivolts. |
+| `67` | Battery Voltage | Device’s internal battery voltage, measured in millivolts. |
+| `68` | Battery Current | Battery current draw or charge rate, measured in milliamperes. |
+| `241` | Active GSM Operator | Network operator code currently providing GSM connectivity. |
+| `16` | Total Odometer | Total distance traveled by the vehicle, measured in meters. |
+| `78` | iButton | iButton key ID or driver identification data (hexadecimal string). |
 
 ---
 
@@ -56,26 +62,45 @@ Each **Data Record** includes:
 - **IO Element Count**
 - **IO Data** (Custom sensors / parameters)
 
-Example (simplified JSON after decoding):
+### Example (Simplified JSON After Decoding)
+
 ```json
 {
-  "timestamp": 1745803078000,
-  "gps": {
-    "lat": -33.979753,
-    "lng": 18.489030,
-    "alt": 3,
-    "speed": 45,
-    "sat": 18
-  },
-  "io": {
-    "66": 15118,
-    "239": 0,
-    "16": 15056
-  }
+    "company_id": "ees",
+    "payload": {
+        "reported": {
+            "ts": 1745803078000,
+            "pr": 0,
+            "latlng": "-33.979753,18.489030",
+            "alt": 3,
+            "ang": 0,
+            "sat": 18,
+            "sp": 0,
+            "evt": 0,
+            "239": 0,
+            "240": 0,
+            "21": 5,
+            "200": 0,
+            "69": 1,
+            "1": 0,
+            "179": 1,
+            "181": 11,
+            "182": 5,
+            "66": 15118,
+            "67": 4096,
+            "68": 0,
+            "241": 65502,
+            "16": 15056,
+            "76": "0x0000000000000000",
+            "78": "0x0000000000000000"
+        }
+    },
+    "load_timestamp": 1745803078.0,
+    "imei": 864636062694738.0,
+    "timestamp": 1745803078.0
 }
-```
 
----
+```
 
 ## Encoding of GPS and Sensor Data
 - **GPS data** is stored as integers scaled by a factor (e.g., latitude/longitude × 10⁷).
